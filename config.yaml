@@ -1,0 +1,23 @@
+sensor:
+  - platform: template
+    name: "Счетчик газа"
+    id: elehant
+    state_class: "total_increasing"
+    unit_of_measurement: "m³"
+    device_class: "gas"
+    accuracy_decimals: 4
+
+esp32_ble_tracker:
+  scan_parameters:
+    interval: 166ms
+    window: 30ms
+    duration: 60s
+    active: false
+  on_ble_manufacturer_data_advertise:
+    - mac_address: # здесь MAC-адрес вашего счетчика
+      manufacturer_id: FFFF
+      then:
+        - lambda: |-          
+            uint32_t counter_temp = x[9] | (x[10] << 8) | (x[11] << 16) | (x[12] << 24);
+            float counter = (float)counter_temp/10000;
+            id(elehant).publish_state(counter);
